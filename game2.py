@@ -108,6 +108,70 @@ while running:
 
     # Just added this to make it slightly fun ;)
     if player.rect.colliderect(end_rect):
+        running = False
+        #raise SystemExit
+
+    # Draw the scene
+    screen.fill((0, 0, 0))
+    for wall in walls:
+        pygame.draw.rect(screen, (255, 255, 255), wall.rect)
+    pygame.draw.rect(screen, (255, 0, 0), end_rect)
+    pygame.draw.rect(screen, (255, 200, 0), player.rect)
+    pygame.display.flip()
+
+level2 = [
+"WWWWWWWWWWWWWWWWWWWW",
+"W   W              W",
+"W   W     WWWWWW   W",
+"W   WWWW       W  EW",
+"W   W        WWWW  W",
+"W  WW  WWWW        W",
+"W   W     W W      W",
+"W   W     W   WWW WW",
+"W   WWW WWW   W W  W",
+"W     W   W   W W  W",
+"WWW   W   WWWWW W  W",
+"W W      WW        W",
+"W W   WWWW   WWW   W",
+"W     W        W   W",
+"WWWWWWWWWWWWWWWWWWWW",
+]
+
+x = y = 0
+for row in level2:
+    for col in row:
+        if col == "W":
+            Wall((x, y))
+        if col == "E":
+            end_rect = pygame.Rect(x, y, 16, 16)
+        x += 16
+    y += 16
+    x = 0
+
+running = True
+while running:
+
+    clock.tick(60)
+
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            running = False
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+            running = False
+
+    # Move the player if an arrow key is pressed
+    key = pygame.key.get_pressed()
+    if key[pygame.K_LEFT]:
+        player.move(-2, 0)
+    if key[pygame.K_RIGHT]:
+        player.move(2, 0)
+    if key[pygame.K_UP]:
+        player.move(0, -2)
+    if key[pygame.K_DOWN]:
+        player.move(0, 2)
+
+    # Just added this to make it slightly fun ;)
+    if player.rect.colliderect(end_rect):
         raise SystemExit
 
     # Draw the scene
