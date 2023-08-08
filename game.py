@@ -1,7 +1,14 @@
-# Example file showing a circle moving on screen
 import pygame
 import random
 
+# Velocity of ball
+def velocity_generate():
+    number = random.randint(-100, 100)
+    if number < 0:
+        number -= 300
+    else:
+        number += 300
+    return number
 
 # Player class
 class Player(object):
@@ -14,7 +21,7 @@ class Player(object):
         # If you collide with a wall, move out based on velocity
         if self.rect.colliderect(walls[0].rect):
             # Moving up; Hit the bottom side of the wall
-            self.rect.bottom = walls[1].rect.top + 1
+            self.rect.bottom = walls[1].rect.top - 1
 
         if self.rect.colliderect(walls[1].rect):
             # Moving down; Hit the top side of the wall
@@ -24,8 +31,53 @@ class Player(object):
 # Ball class
 class Ball(object):
     def __init__(self):
-        self.cir = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+        self.x_coor = screen.get_width() / 2
+        self.y_coor = screen.get_height() / 2
+        self.centre = pygame.Vector2(self.x_coor, self.y_coor)
         self.radius = 15
+
+        self.x_vel = velocity_generate()
+        self.y_vel = velocity_generate()
+
+        self.rect = pygame.Rect(self.x_coor - self.radius, self.y_coor - self.radius, self.radius * 2, self.radius * 2)
+
+
+    def auto_move(self):
+        self.x_coor += int(self.x_vel * dt)
+        self.y_coor += int(self.y_vel * dt)
+        self.centre = pygame.Vector2(self.x_coor, self.y_coor)
+
+        # Update the rectangle based on the new center position
+        self.rect.center = self.centre
+
+        # Check for collisions with walls and adjust velocity accordingly
+        if self.rect.colliderect(walls[0].rect):
+            # Handle collision with the top wall
+            self.y_coor = walls[0].rect.bottom + self.radius
+            self.y_vel = abs(self.y_vel)
+
+        if self.rect.colliderect(walls[1].rect):
+            # Handle collision with the bottom wall
+            self.y_coor = walls[1].rect.top - self.radius
+            self.y_vel = -abs(self.y_vel)
+
+        if self.rect.colliderect(walls[2].rect):
+            # Handle collision with the left wall
+            self.x_coor = walls[2].rect.right + self.radius
+            self.x_vel = abs(self.x_vel)
+
+        if self.rect.colliderect(walls[3].rect):
+            # Handle collision with the right wall
+            self.x_coor = walls[3].rect.left - self.radius
+            self.x_vel = -abs(self.x_vel)
+
+        if self.rect.colliderect(player1.rect):
+            self.x_coor = player1.rect.right + self.radius
+            self.x_vel = abs(self.x_vel)
+
+        if self.rect.colliderect(player2.rect):
+            self.x_coor = player2.rect.left - self.radius
+            self.x_vel = -abs(self.x_vel)
 
 # Outer Frame
 class Frame(object):
@@ -39,7 +91,7 @@ class Frame(object):
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
-dt = 0
+dt = clock.tick(60) / 1000
 
 player1 = Player("red", (40, screen.get_height()/2 - 60))
 player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
@@ -70,6 +122,8 @@ while running:
 
     keys = pygame.key.get_pressed()
 
+    ball.auto_move()
+
     if keys[pygame.K_ESCAPE]:
         running = False
 
@@ -94,7 +148,7 @@ while running:
     pygame.draw.rect(screen, player1.color, player1.rect)
     pygame.draw.rect(screen, player2.color, player2.rect)
 
-    pygame.draw.circle(screen, "black", ball.cir, ball.radius)
+    pygame.draw.circle(screen, "black", ball.centre, ball.radius)
     # flip() the display to put your work on screen
     pygame.display.flip()
 
