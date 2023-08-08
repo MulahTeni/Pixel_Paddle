@@ -9,7 +9,7 @@ def velocity_generate():
         number -= random.randint(200, 300)
     else:
         number += random.randint(200, 300)
-        
+
     return number
 
 
@@ -17,9 +17,9 @@ def velocity_generate():
 def update_velocity(velocity):
 
     if velocity<0:
-        velocity -= 1
+        velocity -= random.random()
     else:
-        velocity += 1
+        velocity += random.random()
 
     return velocity
 
@@ -34,13 +34,10 @@ class Player(object):
 
     def move(self, d):
         self.rect.y += d
-        # If you collide with a wall, move out based on velocity
         if self.rect.colliderect(walls[0].rect):
-            # Moving up; Hit the bottom side of the wall
             self.rect.bottom = walls[1].rect.top - 1
 
         if self.rect.colliderect(walls[1].rect):
-            # Moving down; Hit the top side of the wall
             self.rect.top = walls[0].rect.bottom + 1
 
 
@@ -64,23 +61,19 @@ class Ball(object):
 
     def auto_move(self):
         self.x_vel = update_velocity(self.x_vel)
-        self.y_vel = update_velocity(self.y_vel)
+        self.y_vel = update_velocity(self.y_vel) - 0.1
 
         self.x_coor += int(self.x_vel * dt)
         self.y_coor += int(self.y_vel * dt)
         self.centre = pygame.Vector2(self.x_coor, self.y_coor)
 
-        # Update the rectangle based on the new center position
         self.rect.center = self.centre
 
-        # Check for collisions with walls and adjust velocity accordingly
         if self.rect.colliderect(walls[0].rect):
-            # Handle collision with the top wall
             self.y_coor = walls[0].rect.bottom + self.radius
             self.y_vel = abs(self.y_vel)
 
         if self.rect.colliderect(walls[1].rect):
-            # Handle collision with the bottom wall
             self.y_coor = walls[1].rect.top - self.radius
             self.y_vel = -abs(self.y_vel)
 
@@ -135,13 +128,11 @@ for wall in frame:
 running = True
 
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
     keys = pygame.key.get_pressed()
 
@@ -182,12 +173,10 @@ while running:
         del ball
         ball = Ball()
 
-    # flip() the display to put your work on screen
+    # Display work on screen
     pygame.display.flip()
 
     # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
     dt = clock.tick(60) / 1000
 
 pygame.quit()
