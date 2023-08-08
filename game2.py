@@ -5,8 +5,8 @@ import pygame
 # Class for the orange dude
 class Player(object):
 
-    def __init__(self):
-        self.rect = pygame.Rect(32, 32, 16, 16)
+    def __init__(self, pos):
+        self.rect = pygame.draw.rect(screen, "red", (pos[0],pos[1], 16, 16))#pygame.Rect(32, 32, 16, 16)
 
     def move(self, dx, dy):
 
@@ -51,7 +51,7 @@ screen = pygame.display.set_mode((320, 240))
 
 clock = pygame.time.Clock()
 walls = [] # List to hold the walls
-player = Player() # Create the player
+player = Player((32,32)) # Create the player
 
 # Holds the level layout in a list of strings.
 level = [
@@ -118,6 +118,9 @@ while running:
     pygame.draw.rect(screen, (255, 0, 0), end_rect)
     pygame.draw.rect(screen, (255, 200, 0), player.rect)
     pygame.display.flip()
+
+
+
 
 level2 = [
 "WWWWWWWWWWWWWWWWWWWW",

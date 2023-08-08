@@ -1,0 +1,21 @@
+
+    if keys[pygame.K_a]:
+        player1_pos.x -= 300 * dt
+    if keys[pygame.K_LEFT]:
+        player2_pos.x -= 300 * dt
+    if keys[pygame.K_d]:
+        player1_pos.x += 300 * dt
+    if keys[pygame.K_RIGHT]:
+        player2_pos.x += 300 * dt
+
+
+
+if keys[pygame.K_w]:
+    player1_pos.y -= 300 * dt
+if keys[pygame.K_s]:
+    player1_pos.y += 300 * dt
+
+if keys[pygame.K_UP]:
+    player2_pos.y -= 300 * dt
+if keys[pygame.K_DOWN]:
+    player2_pos.y += 300 * dt
