@@ -19,3 +19,10 @@ if keys[pygame.K_UP]:
     player2_pos.y -= 300 * dt
 if keys[pygame.K_DOWN]:
     player2_pos.y += 300 * dt
+
+    def __init__(self):
+          self.upper = pygame.Rect(0, 0, screen.get_width(), 10)
+          self.lower = pygame.Rect(0, screen.get_height()-9, screen.get_width(), 10)
+
+          self.left = pygame.Rect(0, 0, 10, screen.get_height())
+          self.right = pygame.Rect(screen.get_width()-9, 0, 10, screen.get_height())

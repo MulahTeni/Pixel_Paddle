@@ -11,6 +11,15 @@ class Player(object):
 
     def move(self, d):
         self.rect.y += d
+        # If you collide with a wall, move out based on velocity
+        if self.rect.colliderect(walls[0].rect):
+            # Moving up; Hit the bottom side of the wall
+            self.rect.bottom = walls[1].rect.top + 1
+
+        if self.rect.colliderect(walls[1].rect):
+            # Moving down; Hit the top side of the wall
+            self.rect.top = walls[0].rect.bottom + 1
+
 
 # Ball class
 class Ball(object):
@@ -20,12 +29,10 @@ class Ball(object):
 
 # Outer Frame
 class Frame(object):
-    def __init__(self):
-        self.upper = pygame.Rect(0, 0, screen.get_width(), 10)
-        self.lower = pygame.Rect(0, screen.get_height()-9, screen.get_width(), 10)
+    def __init__(self, pos):
+        walls.append(self)
+        self.rect = pygame.Rect(pos)
 
-        self.left = pygame.Rect(0, 0, 10, screen.get_height())
-        self.right = pygame.Rect(screen.get_width()-9, 0, 10, screen.get_height())
 
 
 # Game setup
@@ -39,7 +46,14 @@ player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
 
 ball = Ball()
 
-frame = Frame()
+frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
+            [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
+
+walls = []
+
+for wall in frame:
+    Frame(wall)
+
 
 
 running = True
@@ -69,11 +83,13 @@ while running:
     if keys[pygame.K_DOWN]:
         player2.move(300 * dt)
 
-
-    pygame.draw.rect(screen, "purple", frame.upper)
-    pygame.draw.rect(screen, "purple", frame.lower)
-    pygame.draw.rect(screen, "green", frame.left)
-    pygame.draw.rect(screen, "green", frame.right)
+    i=0
+    for wall in walls:
+        if i<2:
+            i += 1
+            pygame.draw.rect(screen, "purple", wall.rect)
+        else:
+            pygame.draw.rect(screen, "green", wall.rect)
 
     pygame.draw.rect(screen, player1.color, player1.rect)
     pygame.draw.rect(screen, player2.color, player2.rect)
