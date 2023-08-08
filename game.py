@@ -32,7 +32,6 @@ class Frame(object):
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
-running = True
 dt = 0
 
 player1 = Player("red", (40, screen.get_height()/2 - 60))
@@ -43,6 +42,7 @@ ball = Ball()
 frame = Frame()
 
 
+running = True
 
 while running:
     # poll for events
@@ -53,8 +53,6 @@ while running:
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
-
-
 
     keys = pygame.key.get_pressed()
 
