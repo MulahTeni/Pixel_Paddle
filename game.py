@@ -3,18 +3,34 @@ import random
 
 # Velocity of ball
 def velocity_generate():
+
     number = random.randint(-100, 100)
     if number < 0:
-        number -= 300
+        number -= random.randint(200, 300)
     else:
-        number += 300
+        number += random.randint(200, 300)
+        
     return number
+
+
+# Update velocity through time
+def update_velocity(velocity):
+
+    if velocity<0:
+        velocity -= 1
+    else:
+        velocity += 1
+
+    return velocity
+
 
 # Player class
 class Player(object):
+
     def __init__(self, color, pos):
         self.rect = pygame.Rect(pos[0], pos[1], 20, 120)
         self.color = color
+        self.score = 0
 
     def move(self, d):
         self.rect.y += d
@@ -30,6 +46,7 @@ class Player(object):
 
 # Ball class
 class Ball(object):
+
     def __init__(self):
         self.x_coor = screen.get_width() / 2
         self.y_coor = screen.get_height() / 2
@@ -42,7 +59,13 @@ class Ball(object):
         self.rect = pygame.Rect(self.x_coor - self.radius, self.y_coor - self.radius, self.radius * 2, self.radius * 2)
 
 
+    def __del__(self):
+        pass
+
     def auto_move(self):
+        self.x_vel = update_velocity(self.x_vel)
+        self.y_vel = update_velocity(self.y_vel)
+
         self.x_coor += int(self.x_vel * dt)
         self.y_coor += int(self.y_vel * dt)
         self.centre = pygame.Vector2(self.x_coor, self.y_coor)
@@ -62,14 +85,12 @@ class Ball(object):
             self.y_vel = -abs(self.y_vel)
 
         if self.rect.colliderect(walls[2].rect):
-            # Handle collision with the left wall
-            self.x_coor = walls[2].rect.right + self.radius
-            self.x_vel = abs(self.x_vel)
+            player2.score += 1
+            return True
 
         if self.rect.colliderect(walls[3].rect):
-            # Handle collision with the right wall
-            self.x_coor = walls[3].rect.left - self.radius
-            self.x_vel = -abs(self.x_vel)
+            player1.score += 1
+            return True
 
         if self.rect.colliderect(player1.rect):
             self.x_coor = player1.rect.right + self.radius
@@ -78,6 +99,8 @@ class Ball(object):
         if self.rect.colliderect(player2.rect):
             self.x_coor = player2.rect.left - self.radius
             self.x_vel = -abs(self.x_vel)
+
+        return False
 
 # Outer Frame
 class Frame(object):
@@ -95,6 +118,7 @@ dt = clock.tick(60) / 1000
 
 player1 = Player("red", (40, screen.get_height()/2 - 60))
 player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
+
 
 ball = Ball()
 
@@ -119,10 +143,7 @@ while running:
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("white")
-
     keys = pygame.key.get_pressed()
-
-    ball.auto_move()
 
     if keys[pygame.K_ESCAPE]:
         running = False
@@ -149,6 +170,18 @@ while running:
     pygame.draw.rect(screen, player2.color, player2.rect)
 
     pygame.draw.circle(screen, "black", ball.centre, ball.radius)
+
+    font = pygame.font.Font(None, 36)
+    p1_score_text = font.render(f'Red Player Score: {player1.score}', True, (0, 0, 0))
+    p2_score_text = font.render(f'Blue Player Score: {player2.score}', True, (0, 0, 0))
+
+    screen.blit(p1_score_text, (20, 20))
+    screen.blit(p2_score_text, (screen.get_width()-270, 20))
+
+    if ball.auto_move():
+        del ball
+        ball = Ball()
+
     # flip() the display to put your work on screen
     pygame.display.flip()
 
