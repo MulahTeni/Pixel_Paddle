@@ -9,8 +9,8 @@ running = True
 dt = 0
 
 
-player_pos = pygame.Vector2(40, 40)
-target_pos = pygame.Vector2(screen.get_width() - 40, screen.get_height() - 40)
+player_pos = pygame.Vector2(41, 41)
+target_pos = pygame.Vector2(screen.get_width() - 41, screen.get_height() - 41)
 
 while running:
     # poll for events
@@ -24,15 +24,23 @@ while running:
 
     pygame.draw.circle(screen, "red", player_pos, 40)
     pygame.draw.circle(screen, "blue", target_pos, 40)
-    
+
     keys = pygame.key.get_pressed()
     if keys[pygame.K_w]:
         player_pos.y -= 300 * dt
+    if keys[pygame.K_UP]:
+        player_pos.y -= 300 * dt
     if keys[pygame.K_s]:
+        player_pos.y += 300 * dt
+    if keys[pygame.K_DOWN]:
         player_pos.y += 300 * dt
     if keys[pygame.K_a]:
         player_pos.x -= 300 * dt
+    if keys[pygame.K_LEFT]:
+        player_pos.x -= 300 * dt
     if keys[pygame.K_d]:
+        player_pos.x += 300 * dt
+    if keys[pygame.K_RIGHT]:
         player_pos.x += 300 * dt
     if keys[pygame.K_ESCAPE]:
         running = False
