@@ -105,78 +105,74 @@ class Frame(object):
 
 # Game setup
 pygame.init()
+
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 dt = clock.tick(60) / 1000
 
+walls = []
 player1 = Player("red", (40, screen.get_height()/2 - 60))
 player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
 
+def pgame():
 
-ball = Ball()
+    ball = Ball()
+    frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
+                [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
 
-frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
-            [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
+    for wall in frame:
+        Frame(wall)
 
-walls = []
+    running = True
+    while running:
 
-for wall in frame:
-    Frame(wall)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
+        screen.fill("white")
 
+        keys = pygame.key.get_pressed()
 
-running = True
-
-while running:
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if keys[pygame.K_ESCAPE]:
             running = False
+        if keys[pygame.K_w]:
+            player1.move(-300 * dt)
+        if keys[pygame.K_s]:
+            player1.move(300 * dt)
 
-    screen.fill("white")
-    keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            player2.move(-300 * dt)
+        if keys[pygame.K_DOWN]:
+            player2.move(300 * dt)
 
-    if keys[pygame.K_ESCAPE]:
-        running = False
+        for i, wall in enumerate(walls):
+            if i < 2:
+                wall_color = "purple"
+            else:
+                wall_color = "green"
+            pygame.draw.rect(screen, wall_color, wall.rect)
 
-    if keys[pygame.K_w]:
-        player1.move(-300 * dt)
-    if keys[pygame.K_s]:
-        player1.move(300 * dt)
+        pygame.draw.rect(screen, player1.color, player1.rect)
+        pygame.draw.rect(screen, player2.color, player2.rect)
 
-    if keys[pygame.K_UP]:
-        player2.move(-300 * dt)
-    if keys[pygame.K_DOWN]:
-        player2.move(300 * dt)
+        pygame.draw.circle(screen, "black", ball.centre, ball.radius)
 
-    i=0
-    for wall in walls:
-        if i<2:
-            i += 1
-            pygame.draw.rect(screen, "purple", wall.rect)
-        else:
-            pygame.draw.rect(screen, "green", wall.rect)
+        font = pygame.font.Font(None, 36)
+        p1_score_text = font.render(f'Red Player Score: {player1.score}', True, (0, 0, 0))
+        p2_score_text = font.render(f'Blue Player Score: {player2.score}', True, (0, 0, 0))
 
-    pygame.draw.rect(screen, player1.color, player1.rect)
-    pygame.draw.rect(screen, player2.color, player2.rect)
+        screen.blit(p1_score_text, (20, 20))
+        screen.blit(p2_score_text, (screen.get_width()-270, 20))
 
-    pygame.draw.circle(screen, "black", ball.centre, ball.radius)
+        if ball.auto_move():
+            del ball
+            ball = Ball()
 
-    font = pygame.font.Font(None, 36)
-    p1_score_text = font.render(f'Red Player Score: {player1.score}', True, (0, 0, 0))
-    p2_score_text = font.render(f'Blue Player Score: {player2.score}', True, (0, 0, 0))
+        # Display work on screen
+        pygame.display.flip()
 
-    screen.blit(p1_score_text, (20, 20))
-    screen.blit(p2_score_text, (screen.get_width()-270, 20))
-
-    if ball.auto_move():
-        del ball
-        ball = Ball()
-
-    # Display work on screen
-    pygame.display.flip()
-
-    # limits FPS to 60
-    dt = clock.tick(60) / 1000
-
+        # limits FPS to 60
+        dt = clock.tick(60) / 1000
+pgame()
 pygame.quit()
