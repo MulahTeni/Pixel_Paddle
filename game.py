@@ -114,7 +114,85 @@ walls = []
 player1 = Player("red", (40, screen.get_height()/2 - 60))
 player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
 
-def pgame():
+
+def menu():
+
+    background_color = (149, 225, 211)
+    light_button_color = (234, 255, 208)
+    dark_button_color = (252, 227, 138)
+    light_text_color = (243, 129, 129)
+    dark_text_color = (243, 189, 189)
+
+    title_font = pygame.font.SysFont('Consolas', 80)
+    button_font = pygame.font.SysFont('Consolas', 40)
+
+    title_text = title_font.render('PONG GAME', True, light_text_color)
+
+    light_button_text_0 = button_font.render('Player VS Player', True, light_text_color)
+    dark_button_text_0 = button_font.render('Player VS Player', True, dark_text_color)
+
+    light_button_text_1 = button_font.render('Player VS AI', True, light_text_color)
+    dark_button_text_1 = button_font.render('Player VS AI', True, dark_text_color)
+
+    light_button_text_2 = button_font.render('QUIT', True, light_text_color)
+    dark_button_text_2 = button_font.render('QUIT', True, dark_text_color)
+
+
+    running = True
+    while running:
+
+        for ev in pygame.event.get():
+            #checks if a mouse is clicked
+            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-210 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2-50<= mouse[1] <= screen.get_height()/2):
+                playerVsPlayer()
+            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+200<= mouse[1] <= screen.get_height()/2+250):
+                running = False
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        screen.fill(background_color)
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_ESCAPE]:
+            running = False
+
+        mouse = pygame.mouse.get_pos()
+
+        # Button 0
+        if screen.get_width()/2-210 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2-50<= mouse[1] <= screen.get_height()/2:
+            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-210, screen.get_height()/2 - 50, 360, 50])
+            screen.blit(light_button_text_0, (screen.get_width()/2-205, screen.get_height()/2 - 48))
+        else:
+            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-210, screen.get_height()/2 - 50, 360, 50])
+            screen.blit(dark_button_text_0, (screen.get_width()/2-205, screen.get_height()/2 - 48))
+
+        # Button 1
+        if screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+75<= mouse[1] <= screen.get_height()/2+125:
+            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-180, screen.get_height()/2+75, 300, 50])
+            screen.blit(light_button_text_1, (screen.get_width()/2-180, screen.get_height()/2+75))
+        else:
+            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-180, screen.get_height()/2+75, 300, 50])
+            screen.blit(dark_button_text_1, (screen.get_width()/2-180, screen.get_height()/2+75))
+
+        # Button 2
+        if screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+200<= mouse[1] <= screen.get_height()/2+250:
+            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-180, screen.get_height()/2 +200, 300, 50])
+            screen.blit(light_button_text_2, (screen.get_width()/2-180, screen.get_height()/2+200))
+        else:
+            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-180, screen.get_height()/2+200, 300, 50])
+            screen.blit(dark_button_text_2, (screen.get_width()/2-180, screen.get_height()/2+200))
+
+        screen.blit(title_text, (screen.get_width()/2-240, 60))
+
+
+
+        pygame.display.flip()
+
+
+def playerVsPlayer():
 
     ball = Ball()
     frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
@@ -159,8 +237,8 @@ def pgame():
         pygame.draw.circle(screen, "black", ball.centre, ball.radius)
 
         font = pygame.font.Font(None, 36)
-        p1_score_text = font.render(f'Red Player Score: {player1.score}', True, (0, 0, 0))
-        p2_score_text = font.render(f'Blue Player Score: {player2.score}', True, (0, 0, 0))
+        p1_score_text = font.render(f'{player1.score}', True, (0, 0, 0))
+        p2_score_text = font.render(f'{player2.score}', True, (0, 0, 0))
 
         screen.blit(p1_score_text, (20, 20))
         screen.blit(p2_score_text, (screen.get_width()-270, 20))
@@ -171,8 +249,7 @@ def pgame():
 
         # Display work on screen
         pygame.display.flip()
-
-        # limits FPS to 60
         dt = clock.tick(60) / 1000
-pgame()
+
+menu()
 pygame.quit()
