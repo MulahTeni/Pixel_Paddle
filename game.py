@@ -56,8 +56,6 @@ class Ball(object):
         self.rect = pygame.Rect(self.x_coor - self.radius, self.y_coor - self.radius, self.radius * 2, self.radius * 2)
 
 
-    def __del__(self):
-        pass
 
     def auto_move(self):
         self.x_vel = update_velocity(self.x_vel)
@@ -78,19 +76,19 @@ class Ball(object):
             self.y_vel = -abs(self.y_vel)
 
         if self.rect.colliderect(walls[2].rect):
-            player2.score += 1
+            player_blue.score += 1
             return True
 
         if self.rect.colliderect(walls[3].rect):
-            player1.score += 1
+            player_red.score += 1
             return True
 
-        if self.rect.colliderect(player1.rect):
-            self.x_coor = player1.rect.right + self.radius
+        if self.rect.colliderect(player_red.rect):
+            self.x_coor = player_red.rect.right + self.radius
             self.x_vel = abs(self.x_vel)
 
-        if self.rect.colliderect(player2.rect):
-            self.x_coor = player2.rect.left - self.radius
+        if self.rect.colliderect(player_blue.rect):
+            self.x_coor = player_blue.rect.left - self.radius
             self.x_vel = -abs(self.x_vel)
 
         return False
@@ -102,6 +100,24 @@ class Frame(object):
         self.rect = pygame.Rect(pos)
 
 
+class AI(Player):
+
+    def __init__(self, color, pos):
+        super().__init__(color, pos)
+
+    def move(self, ball):
+        if ball.y_coor < self.rect.y:
+            self.rect.y -= 300 * dt
+        elif ball.y_coor > self.rect.y:
+            self.rect.y += 300 * dt
+
+        if self.rect.colliderect(walls[0].rect):
+            self.rect.top = walls[0].rect.bottom + 1
+
+        if self.rect.colliderect(walls[1].rect):
+            self.rect.bottom = walls[1].rect.top - 1
+
+
 
 # Game setup
 pygame.init()
@@ -111,9 +127,10 @@ clock = pygame.time.Clock()
 dt = clock.tick(60) / 1000
 
 walls = []
-player1 = Player("red", (40, screen.get_height()/2 - 60))
-player2 = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
-
+player_red = Player("red", (40, screen.get_height()/2 - 60))
+player_blue = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
+ai_player = AI("green", (screen.get_width() - 60, screen.get_height()/2 - 60))
+pvp = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
 
 def menu():
 
@@ -142,9 +159,12 @@ def menu():
     while running:
 
         for ev in pygame.event.get():
-            #checks if a mouse is clicked
             if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-210 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2-50<= mouse[1] <= screen.get_height()/2):
+                player_blue = pvp
                 playerVsPlayer()
+            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+75<= mouse[1] <= screen.get_height()/2+125):
+                player_blue = ai_player
+                playerVsAi()
             if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+200<= mouse[1] <= screen.get_height()/2+250):
                 running = False
 
@@ -192,6 +212,67 @@ def menu():
         pygame.display.flip()
 
 
+def playerVsAi():
+
+    ball = Ball()
+    ai_player = AI("green", (screen.get_width() - 60, screen.get_height()/2 - 60))
+
+    frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
+                [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
+
+    for wall in frame:
+        Frame(wall)
+
+    running1 = True
+    while running1:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running1 = False
+
+        screen.fill("white")
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_ESCAPE]:
+            running1 = False
+        if keys[pygame.K_w]:
+            player_red.move(-300 * dt)
+        if keys[pygame.K_s]:
+            player_red.move(300 * dt)
+
+        ai_player.move(ball)
+
+        # ... (rest of the code)
+        for i, wall in enumerate(walls):
+            if i < 2:
+                wall_color = "purple"
+            else:
+                wall_color = "green"
+            pygame.draw.rect(screen, wall_color, wall.rect)
+
+        pygame.draw.rect(screen, player_red.color, player_red.rect)
+        pygame.draw.rect(screen, ai_player.color, ai_player.rect)
+
+        pygame.draw.circle(screen, "black", ball.centre, ball.radius)
+
+        font = pygame.font.Font(None, 36)
+        p1_score_text = font.render(f'{player_red.score}', True, (0, 0, 0))
+        p2_score_text = font.render(f'{player_blue.score}', True, (0, 0, 0))
+
+        screen.blit(p1_score_text, (20, 20))
+        screen.blit(p2_score_text, (screen.get_width()-270, 20))
+
+        if ball.auto_move():
+            del ball
+            ball = Ball()
+
+
+        pygame.display.flip()
+        dt = clock.tick(60) / 1000
+
+
+
 def playerVsPlayer():
 
     ball = Ball()
@@ -201,28 +282,28 @@ def playerVsPlayer():
     for wall in frame:
         Frame(wall)
 
-    running = True
-    while running:
+    running2 = True
+    while running2:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                running2 = False
 
         screen.fill("white")
 
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_ESCAPE]:
-            running = False
+            running2 = False
         if keys[pygame.K_w]:
-            player1.move(-300 * dt)
+            player_red.move(-300 * dt)
         if keys[pygame.K_s]:
-            player1.move(300 * dt)
+            player_red.move(300 * dt)
 
         if keys[pygame.K_UP]:
-            player2.move(-300 * dt)
+            player_blue.move(-300 * dt)
         if keys[pygame.K_DOWN]:
-            player2.move(300 * dt)
+            player_blue.move(300 * dt)
 
         for i, wall in enumerate(walls):
             if i < 2:
@@ -231,14 +312,14 @@ def playerVsPlayer():
                 wall_color = "green"
             pygame.draw.rect(screen, wall_color, wall.rect)
 
-        pygame.draw.rect(screen, player1.color, player1.rect)
-        pygame.draw.rect(screen, player2.color, player2.rect)
+        pygame.draw.rect(screen, player_red.color, player_red.rect)
+        pygame.draw.rect(screen, player_blue.color, player_blue.rect)
 
         pygame.draw.circle(screen, "black", ball.centre, ball.radius)
 
         font = pygame.font.Font(None, 36)
-        p1_score_text = font.render(f'{player1.score}', True, (0, 0, 0))
-        p2_score_text = font.render(f'{player2.score}', True, (0, 0, 0))
+        p1_score_text = font.render(f'{player_red.score}', True, (0, 0, 0))
+        p2_score_text = font.render(f'{player_blue.score}', True, (0, 0, 0))
 
         screen.blit(p1_score_text, (20, 20))
         screen.blit(p2_score_text, (screen.get_width()-270, 20))
