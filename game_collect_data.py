@@ -179,6 +179,6 @@ while running2:
     dt = clock.tick(60) / 1000
 
 df = pd.DataFrame(data)
-df.to_csv("data.csv", index=False)
+df.to_csv("data2.csv", index=False)
 
 pygame.quit()
