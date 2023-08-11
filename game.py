@@ -231,5 +231,4 @@ while True:
     clock.tick(60)
 
 
-# Clean up
 pygame.quit()
