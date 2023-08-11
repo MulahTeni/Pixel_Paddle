@@ -1,336 +1,235 @@
 import pygame
 import random
 
-# Velocity of ball
-def velocity_generate():
-
-    number = random.randint(-100, 100)
-    if number < 0:
-        number -= random.randint(200, 300)
-    else:
-        number += random.randint(200, 300)
-
-    return number
-
-
-# Update velocity through time
-def update_velocity(velocity):
-
-    if velocity<0:
-        velocity -= random.random()
-    else:
-        velocity += random.random()
-
-    return velocity
-
-
-# Player class
-class Player(object):
-
-    def __init__(self, color, pos):
-        self.rect = pygame.Rect(pos[0], pos[1], 20, 120)
-        self.color = color
-        self.score = 0
-
-    def move(self, d):
-        self.rect.y += d
-        if self.rect.colliderect(walls[0].rect):
-            self.rect.bottom = walls[1].rect.top - 1
-
-        if self.rect.colliderect(walls[1].rect):
-            self.rect.top = walls[0].rect.bottom + 1
-
-
-# Ball class
-class Ball(object):
-
-    def __init__(self):
-        self.x_coor = screen.get_width() / 2
-        self.y_coor = screen.get_height() / 2
-        self.centre = pygame.Vector2(self.x_coor, self.y_coor)
-        self.radius = 15
-
-        self.x_vel = velocity_generate()
-        self.y_vel = velocity_generate()
-
-        self.rect = pygame.Rect(self.x_coor - self.radius, self.y_coor - self.radius, self.radius * 2, self.radius * 2)
-
-
-
-    def auto_move(self):
-        self.x_vel = update_velocity(self.x_vel)
-        self.y_vel = update_velocity(self.y_vel) - 0.1
-
-        self.x_coor += int(self.x_vel * dt)
-        self.y_coor += int(self.y_vel * dt)
-        self.centre = pygame.Vector2(self.x_coor, self.y_coor)
-
-        self.rect.center = self.centre
-
-        if self.rect.colliderect(walls[0].rect):
-            self.y_coor = walls[0].rect.bottom + self.radius
-            self.y_vel = abs(self.y_vel)
-
-        if self.rect.colliderect(walls[1].rect):
-            self.y_coor = walls[1].rect.top - self.radius
-            self.y_vel = -abs(self.y_vel)
-
-        if self.rect.colliderect(walls[2].rect):
-            player_blue.score += 1
-            return True
-
-        if self.rect.colliderect(walls[3].rect):
-            player_red.score += 1
-            return True
-
-        if self.rect.colliderect(player_red.rect):
-            self.x_coor = player_red.rect.right + self.radius
-            self.x_vel = abs(self.x_vel)
-
-        if self.rect.colliderect(player_blue.rect):
-            self.x_coor = player_blue.rect.left - self.radius
-            self.x_vel = -abs(self.x_vel)
-
-        return False
-
-# Outer Frame
-class Frame(object):
-    def __init__(self, pos):
-        walls.append(self)
-        self.rect = pygame.Rect(pos)
-
-
-class AI(Player):
-
-    def __init__(self, color, pos):
-        super().__init__(color, pos)
-
-    def move(self, ball):
-        if ball.y_coor < self.rect.y:
-            self.rect.y -= 300 * dt
-        elif ball.y_coor > self.rect.y:
-            self.rect.y += 300 * dt
-
-        if self.rect.colliderect(walls[0].rect):
-            self.rect.top = walls[0].rect.bottom + 1
-
-        if self.rect.colliderect(walls[1].rect):
-            self.rect.bottom = walls[1].rect.top - 1
-
-
-
-# Game setup
 pygame.init()
 
-screen = pygame.display.set_mode((1280, 720))
+class Button:
+    def __init__(self, x, y, width, height, text, color):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.text = text
+        self.color = color
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, self.rect)
+        text_render = text_font.render(self.text, True, "white")
+        text_rect = text_render.get_rect(center=self.rect.center)
+        surface.blit(text_render, text_rect)
+
+
+WIDTH, HEIGHT = 800, 600
+win = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pong Game")
+
+PADDLE_WIDTH, PADDLE_HEIGHT = 10, 100
+BALL_SIZE = 20
+
+player1_paddle = pygame.Rect(50, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
+player2_paddle = pygame.Rect(WIDTH - 50 - PADDLE_WIDTH, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
+ball = pygame.Rect(WIDTH // 2 - BALL_SIZE // 2, HEIGHT // 2 - BALL_SIZE // 2, BALL_SIZE, BALL_SIZE)
+player_score = 0
+opponent_score = 0
+
+start_ball_speed = [5, 5]
+ball_speed = list(start_ball_speed)
+
+text_font = pygame.font.Font(None, 36)
+paused_font = pygame.font.Font(None, 72)
+paused_text = paused_font.render("Game Paused", True, "blue")
+
+BUTTON_WIDTH = 200
+BUTTON_HEIGHT = 60
+
+menu_active = True
+player_vs_player = False
+game_over = False
+game_paused = False
+
+
 clock = pygame.time.Clock()
-dt = clock.tick(60) / 1000
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+        elif not menu_active and event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            game_paused = not game_paused
 
-walls = []
-player_red = Player("red", (40, screen.get_height()/2 - 60))
-player_blue = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
-ai_player = AI("green", (screen.get_width() - 60, screen.get_height()/2 - 60))
-pvp = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if game_over:
+                if return_to_menu_button.rect.collidepoint(event.pos):
+                    player_score = 0
+                    opponent_score = 0
+                    game_over = False
+                    player1_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
+                    player2_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
+                    ball.center = (WIDTH // 2, HEIGHT // 2)
+                    ball_speed = list(start_ball_speed)
+                    menu_active = True
+            elif game_paused:
+                if return_to_menu_button.rect.collidepoint(event.pos):
+                    game_paused = not game_paused
+                    player_score = 0
+                    opponent_score = 0
+                    game_over = False
+                    player1_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
+                    player2_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
+                    ball.center = (WIDTH // 2, HEIGHT // 2)
+                    ball_speed = list(start_ball_speed)
+                    menu_active = True
 
-def menu():
-
-    background_color = (149, 225, 211)
-    light_button_color = (234, 255, 208)
-    dark_button_color = (252, 227, 138)
-    light_text_color = (243, 129, 129)
-    dark_text_color = (243, 189, 189)
-
-    title_font = pygame.font.SysFont('Consolas', 80)
-    button_font = pygame.font.SysFont('Consolas', 40)
-
-    title_text = title_font.render('PONG GAME', True, light_text_color)
-
-    light_button_text_0 = button_font.render('Player VS Player', True, light_text_color)
-    dark_button_text_0 = button_font.render('Player VS Player', True, dark_text_color)
-
-    light_button_text_1 = button_font.render('Player VS AI', True, light_text_color)
-    dark_button_text_1 = button_font.render('Player VS AI', True, dark_text_color)
-
-    light_button_text_2 = button_font.render('QUIT', True, light_text_color)
-    dark_button_text_2 = button_font.render('QUIT', True, dark_text_color)
-
-
-    running = True
-    while running:
-
-        for ev in pygame.event.get():
-            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-210 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2-50<= mouse[1] <= screen.get_height()/2):
-                player_blue = pvp
-                playerVsPlayer()
-            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+75<= mouse[1] <= screen.get_height()/2+125):
-                player_blue = ai_player
-                playerVsAi()
-            if ev.type == pygame.MOUSEBUTTONDOWN and (screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+200<= mouse[1] <= screen.get_height()/2+250):
-                running = False
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-
-        screen.fill(background_color)
-
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_ESCAPE]:
-            running = False
-
-        mouse = pygame.mouse.get_pos()
-
-        # Button 0
-        if screen.get_width()/2-210 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2-50<= mouse[1] <= screen.get_height()/2:
-            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-210, screen.get_height()/2 - 50, 360, 50])
-            screen.blit(light_button_text_0, (screen.get_width()/2-205, screen.get_height()/2 - 48))
-        else:
-            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-210, screen.get_height()/2 - 50, 360, 50])
-            screen.blit(dark_button_text_0, (screen.get_width()/2-205, screen.get_height()/2 - 48))
-
-        # Button 1
-        if screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+75<= mouse[1] <= screen.get_height()/2+125:
-            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-180, screen.get_height()/2+75, 300, 50])
-            screen.blit(light_button_text_1, (screen.get_width()/2-180, screen.get_height()/2+75))
-        else:
-            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-180, screen.get_height()/2+75, 300, 50])
-            screen.blit(dark_button_text_1, (screen.get_width()/2-180, screen.get_height()/2+75))
-
-        # Button 2
-        if screen.get_width()/2-180 <= mouse[0] <= screen.get_width()/2+120 and screen.get_height()/2+200<= mouse[1] <= screen.get_height()/2+250:
-            pygame.draw.rect(screen, light_button_color, [screen.get_width()/2-180, screen.get_height()/2 +200, 300, 50])
-            screen.blit(light_button_text_2, (screen.get_width()/2-180, screen.get_height()/2+200))
-        else:
-            pygame.draw.rect(screen, dark_button_color, [screen.get_width()/2-180, screen.get_height()/2+200, 300, 50])
-            screen.blit(dark_button_text_2, (screen.get_width()/2-180, screen.get_height()/2+200))
-
-        screen.blit(title_text, (screen.get_width()/2-240, 60))
-
-
-
-        pygame.display.flip()
-
-
-def playerVsAi():
-
-    ball = Ball()
-    ai_player = AI("green", (screen.get_width() - 60, screen.get_height()/2 - 60))
-
-    frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
-                [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
-
-    for wall in frame:
-        Frame(wall)
-
-    running1 = True
-    while running1:
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running1 = False
-
-        screen.fill("white")
-
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_ESCAPE]:
-            running1 = False
-        if keys[pygame.K_w]:
-            player_red.move(-300 * dt)
-        if keys[pygame.K_s]:
-            player_red.move(300 * dt)
-
-        ai_player.move(ball)
-
-        # ... (rest of the code)
-        for i, wall in enumerate(walls):
-            if i < 2:
-                wall_color = "purple"
+                if paused_button.rect.collidepoint(event.pos):
+                    game_paused = not game_paused
             else:
-                wall_color = "green"
-            pygame.draw.rect(screen, wall_color, wall.rect)
-
-        pygame.draw.rect(screen, player_red.color, player_red.rect)
-        pygame.draw.rect(screen, ai_player.color, ai_player.rect)
-
-        pygame.draw.circle(screen, "black", ball.centre, ball.radius)
-
-        font = pygame.font.Font(None, 36)
-        p1_score_text = font.render(f'{player_red.score}', True, (0, 0, 0))
-        p2_score_text = font.render(f'{player_blue.score}', True, (0, 0, 0))
-
-        screen.blit(p1_score_text, (20, 20))
-        screen.blit(p2_score_text, (screen.get_width()-270, 20))
-
-        if ball.auto_move():
-            del ball
-            ball = Ball()
+                if play_button.rect.collidepoint(event.pos):
+                    menu_active = False
+                elif pvp_button.rect.collidepoint(event.pos):
+                    menu_active = False
+                    player_vs_player = True
+                elif exit_button.rect.collidepoint(event.pos):
+                    pygame.quit()
+                    exit()
 
 
-        pygame.display.flip()
-        dt = clock.tick(60) / 1000
+    if menu_active:
+        player_vs_player = False
+        title_font = pygame.font.Font(None, 72)
+        title_text = title_font.render("Pixel Paddle", True, "red")
+        title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 4))
+        win.fill((0,0,0))
+        win.blit(title_text, title_rect)
+        play_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 - 60, BUTTON_WIDTH, BUTTON_HEIGHT, "Play", "blue")
+        pvp_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 10, BUTTON_WIDTH, BUTTON_HEIGHT, "Player vs. Player", "blue")
+        exit_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 80, BUTTON_WIDTH, BUTTON_HEIGHT, "Exit", "blue")
+        play_button.draw(win)
+        pvp_button.draw(win)
+        exit_button.draw(win)
 
+    else:
+        if game_over:
+            win.fill("white")
 
-
-def playerVsPlayer():
-
-    ball = Ball()
-    frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
-                [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
-
-    for wall in frame:
-        Frame(wall)
-
-    running2 = True
-    while running2:
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running2 = False
-
-        screen.fill("white")
-
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_ESCAPE]:
-            running2 = False
-        if keys[pygame.K_w]:
-            player_red.move(-300 * dt)
-        if keys[pygame.K_s]:
-            player_red.move(300 * dt)
-
-        if keys[pygame.K_UP]:
-            player_blue.move(-300 * dt)
-        if keys[pygame.K_DOWN]:
-            player_blue.move(300 * dt)
-
-        for i, wall in enumerate(walls):
-            if i < 2:
-                wall_color = "purple"
+            winner_font = pygame.font.Font(None, 48)
+            if player_score >= 5:
+                winner_text = winner_font.render("Player Wins!", True, "blue")
             else:
-                wall_color = "green"
-            pygame.draw.rect(screen, wall_color, wall.rect)
+                winner_text = winner_font.render("Bot Wins!", True, "blue")
+            winner_rect = winner_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+            win.blit(winner_text, winner_rect)
 
-        pygame.draw.rect(screen, player_red.color, player_red.rect)
-        pygame.draw.rect(screen, player_blue.color, player_blue.rect)
+            return_to_menu_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2, BUTTON_WIDTH, BUTTON_HEIGHT, "Return to Menu", "blue")
+            return_to_menu_button.draw(win)
 
-        pygame.draw.circle(screen, "black", ball.centre, ball.radius)
+        else:
+            if not game_paused:
+                keys = pygame.key.get_pressed()
+                if player_vs_player:
+                    if keys[pygame.K_UP] and player2_paddle.top > 0:
+                        player2_paddle.y -= 5
+                    if keys[pygame.K_DOWN] and player2_paddle.bottom < HEIGHT:
+                        player2_paddle.y += 5
+                    if keys[pygame.K_w] and player1_paddle.top > 0:
+                        player1_paddle.y -= 5
+                    if keys[pygame.K_s] and player1_paddle.bottom < HEIGHT:
+                        player1_paddle.y += 5
+                else:
+                    if keys[pygame.K_w] and player1_paddle.top > 0:
+                        player1_paddle.y -= 5
+                    if keys[pygame.K_s] and player1_paddle.bottom < HEIGHT:
+                        player1_paddle.y += 5
 
-        font = pygame.font.Font(None, 36)
-        p1_score_text = font.render(f'{player_red.score}', True, (0, 0, 0))
-        p2_score_text = font.render(f'{player_blue.score}', True, (0, 0, 0))
+                    if ball_speed[0] > 0:
+                        predicted_y = ball.y + (player2_paddle.centerx - ball.centerx) * ball_speed[1] / ball_speed[0]
 
-        screen.blit(p1_score_text, (20, 20))
-        screen.blit(p2_score_text, (screen.get_width()-270, 20))
+                        time_to_reach_predicted = abs(predicted_y - player2_paddle.centery) / 5
 
-        if ball.auto_move():
-            del ball
-            ball = Ball()
+                        predicted_ball_x = ball.centerx + ball_speed[0] * time_to_reach_predicted
+                        predicted_ball_y = ball.centery + ball_speed[1] * time_to_reach_predicted
 
-        # Display work on screen
-        pygame.display.flip()
-        dt = clock.tick(60) / 1000
+                        while predicted_ball_y < 0 or predicted_ball_y > HEIGHT:
+                            if predicted_ball_y < 0:
+                                predicted_ball_y = -predicted_ball_y
+                            else:
+                                predicted_ball_y = 2 * HEIGHT - predicted_ball_y
 
-menu()
+                        if predicted_ball_y < player2_paddle.centery and player2_paddle.top>0:
+                            player2_paddle.y -= 5
+                        elif predicted_ball_y > player2_paddle.centery and player2_paddle.bottom<HEIGHT:
+                            player2_paddle.y += 5
+                    else:
+                        vel = 5
+                        if abs(player2_paddle.centery - HEIGHT/2) < 5:
+                            vel = player2_paddle.centery - HEIGHT/2
+                        if player2_paddle.centery < HEIGHT/2:
+                            player2_paddle.y += vel
+                        else:
+                            player2_paddle.y -= vel
+
+                ball.x += ball_speed[0]
+                ball.y += ball_speed[1]
+
+                if abs(ball_speed[0]) < 15:
+                    ball_speed[0] *= 1.001
+                if abs(ball_speed[1]) < 15:
+                    ball_speed[1] *= 1.001
+
+                if ball.top <= 0 or ball.bottom >= HEIGHT:
+                    ball_speed[1] = -ball_speed[1]
+
+                if ball.colliderect(player1_paddle) or ball.colliderect(player2_paddle):
+                    ball_speed[0] = -ball_speed[0]
+                    if ball.colliderect(player1_paddle):
+                        ball.left = player1_paddle.right
+                    elif ball.colliderect(player2_paddle):
+                        ball.right = player2_paddle.left
+
+
+
+                if ball.left <= 0:
+                    opponent_score += 1
+                    ball_speed = list((random.randint(2,5), random.randint(1,4)))
+                    num = 1 if random.random() > 0.5 else -1
+                    ball_speed[0] *= num
+                    num = 1 if random.random() > 0.5 else -1
+                    ball_speed[1] *= num
+                    ball.center = (WIDTH // 2, HEIGHT // 2)
+                if ball.right >= WIDTH:
+                    player_score += 1
+                    ball_speed = list((random.randint(2,5), random.randint(1,4)))
+                    num = 1 if random.random() > 0.5 else -1
+                    ball_speed[0] *= num
+                    num = 1 if random.random() > 0.5 else -1
+                    ball_speed[1] *= num
+                    ball.center = (WIDTH // 2, HEIGHT // 2)
+
+
+
+            win.fill("white")
+            pygame.draw.rect(win, "red", player1_paddle)
+            pygame.draw.rect(win, "red", player2_paddle)
+            pygame.draw.ellipse(win, "red", ball)
+            pygame.draw.aaline(win, "red", (WIDTH // 2, 0), (WIDTH // 2, HEIGHT))
+
+            if game_paused:
+                win.blit(paused_text, paused_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 100)))
+                paused_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 - 60, BUTTON_WIDTH, BUTTON_HEIGHT, "Resume", "blue")
+                paused_button.draw(win)
+                return_to_menu_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 10, BUTTON_WIDTH, BUTTON_HEIGHT, "Return to Menu", "blue")
+                return_to_menu_button.draw(win)
+
+
+
+            player_text = text_font.render(f"Player: {player_score}", True, "red")
+            opponent_text = text_font.render(f"Opponent: {opponent_score}", True, "red")
+            win.blit(player_text, (20, 20))
+            win.blit(opponent_text, (WIDTH - opponent_text.get_width() - 20, 20))
+
+            if player_score >= 5 or opponent_score >= 5:
+                game_over = True
+
+
+    pygame.display.update()
+    clock.tick(60)
+
+
+# Clean up
 pygame.quit()
