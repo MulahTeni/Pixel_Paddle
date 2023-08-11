@@ -1,6 +1,6 @@
 import pygame
 import random
-import pickle
+import pandas as pd
 
 
 # Velocity of ball
@@ -113,7 +113,8 @@ walls = []
 player_red = Player("red", (40, screen.get_height()/2 - 60))
 player_blue = Player("blue", (screen.get_width() - 60, screen.get_height()/2 - 60))
 
-data = []
+data = [("ball.x_coor", "ball.y_coor", "ball.x_vel", "ball.y_vel", "player_blue.rect.y", "player_action")]
+
 ball = Ball()
 frame = [[0, 0, screen.get_width(), 10], [0, screen.get_height()-9, screen.get_width(), 10],
             [0, 0, 10, screen.get_height()], [screen.get_width()-9, 0, 10, screen.get_height()]]
@@ -125,21 +126,13 @@ for wall in frame:
 running2 = True
 while running2:
 
-    game_state = {
-        "ball_x_coor": ball.x_coor,
-        "ball_y_coor": ball.y_coor,
-        "ball_x_vel": ball.x_vel,
-        "ball_y_vel": ball.y_vel,
-        "player_y_": player_blue.rect.y
-    }
-    player_action = 0
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running2 = False
 
     keys = pygame.key.get_pressed()
 
+    player_action = 0
     if keys[pygame.K_ESCAPE]:
         running2 = False
     if keys[pygame.K_w]:
@@ -153,7 +146,7 @@ while running2:
     if keys[pygame.K_DOWN]:
         player_blue.move(300 * dt)
 
-    data.append((game_state, player_action))
+    data.append((ball.x_coor, ball.y_coor, ball.x_vel, ball.y_vel, player_blue.rect.y, player_action))
 
     screen.fill("white")
 
@@ -185,6 +178,7 @@ while running2:
 
     dt = clock.tick(60) / 1000
 
-with open("veri.pkl", "ab") as f:
-    pickle.dump(data, f)
+df = pd.DataFrame(data)
+df.to_csv("data.csv", index=False)
+
 pygame.quit()
