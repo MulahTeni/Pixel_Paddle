@@ -35,5 +35,5 @@ Model accuracy is shown below...
 
 Model kind of overfits but since accuracy is still low for validation data I did not play with it much.
 
-## Code
-I started coding classes for everthing but when I struggled with ml model stuff I nearly deleted everything and started from zero. I tried to code it better and shorter but code did not change much.
+## Source
+All started from here: https://www.pygame.org/docs/
