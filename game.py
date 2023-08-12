@@ -26,8 +26,8 @@ BALL_SIZE = 20
 player1_paddle = pygame.Rect(50, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
 player2_paddle = pygame.Rect(WIDTH - 50 - PADDLE_WIDTH, HEIGHT // 2 - PADDLE_HEIGHT // 2, PADDLE_WIDTH, PADDLE_HEIGHT)
 ball = pygame.Rect(WIDTH // 2 - BALL_SIZE // 2, HEIGHT // 2 - BALL_SIZE // 2, BALL_SIZE, BALL_SIZE)
-player_score = 0
-opponent_score = 0
+player1_score = 0
+player2_score = 0
 
 start_ball_speed = [5, 5]
 ball_speed = list(start_ball_speed)
@@ -57,8 +57,8 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if game_over:
                 if return_to_menu_button.rect.collidepoint(event.pos):
-                    player_score = 0
-                    opponent_score = 0
+                    player1_score = 0
+                    player2_score = 0
                     game_over = False
                     player1_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
                     player2_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
@@ -68,8 +68,8 @@ while True:
             elif game_paused:
                 if return_to_menu_button.rect.collidepoint(event.pos):
                     game_paused = not game_paused
-                    player_score = 0
-                    opponent_score = 0
+                    player1_score = 0
+                    player2_score = 0
                     game_over = False
                     player1_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
                     player2_paddle.y = HEIGHT // 2 - PADDLE_HEIGHT // 2
@@ -80,7 +80,7 @@ while True:
                 if paused_button.rect.collidepoint(event.pos):
                     game_paused = not game_paused
             else:
-                if play_button.rect.collidepoint(event.pos):
+                if pve_button.rect.collidepoint(event.pos):
                     menu_active = False
                 elif pvp_button.rect.collidepoint(event.pos):
                     menu_active = False
@@ -97,10 +97,10 @@ while True:
         title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 4))
         win.fill((0,0,0))
         win.blit(title_text, title_rect)
-        play_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 - 60, BUTTON_WIDTH, BUTTON_HEIGHT, "Play", "blue")
-        pvp_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 10, BUTTON_WIDTH, BUTTON_HEIGHT, "Player vs. Player", "blue")
+        pve_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 - 60, BUTTON_WIDTH, BUTTON_HEIGHT, "Play vs Bot", "blue")
+        pvp_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 10, BUTTON_WIDTH, BUTTON_HEIGHT, "Player vs Player", "blue")
         exit_button = Button(WIDTH // 2 - BUTTON_WIDTH // 2, HEIGHT // 2 + 80, BUTTON_WIDTH, BUTTON_HEIGHT, "Exit", "blue")
-        play_button.draw(win)
+        pve_button.draw(win)
         pvp_button.draw(win)
         exit_button.draw(win)
 
@@ -109,10 +109,10 @@ while True:
             win.fill("white")
 
             winner_font = pygame.font.Font(None, 48)
-            if player_score >= 5:
-                winner_text = winner_font.render("Player Wins!", True, "blue")
+            if player1_score >= 5:
+                winner_text = winner_font.render("Player 1 Wins!", True, "blue")
             else:
-                winner_text = winner_font.render("Bot Wins!", True, "blue")
+                winner_text = winner_font.render("Player 2 Wins!", True, "blue")
             winner_rect = winner_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
             win.blit(winner_text, winner_rect)
 
@@ -185,7 +185,7 @@ while True:
 
 
                 if ball.left <= 0:
-                    opponent_score += 1
+                    player2_score += 1
                     ball_speed = list((random.randint(2,5), random.randint(1,4)))
                     num = 1 if random.random() > 0.5 else -1
                     ball_speed[0] *= num
@@ -193,7 +193,7 @@ while True:
                     ball_speed[1] *= num
                     ball.center = (WIDTH // 2, HEIGHT // 2)
                 if ball.right >= WIDTH:
-                    player_score += 1
+                    player1_score += 1
                     ball_speed = list((random.randint(2,5), random.randint(1,4)))
                     num = 1 if random.random() > 0.5 else -1
                     ball_speed[0] *= num
@@ -218,12 +218,12 @@ while True:
 
 
 
-            player_text = text_font.render(f"Player: {player_score}", True, "red")
-            opponent_text = text_font.render(f"Opponent: {opponent_score}", True, "red")
+            player_text = text_font.render(f"{player1_score}", True, "red")
+            player2_text = text_font.render(f"{player2_score}", True, "red")
             win.blit(player_text, (20, 20))
-            win.blit(opponent_text, (WIDTH - opponent_text.get_width() - 20, 20))
+            win.blit(player2_text, (WIDTH - player2_text.get_width() - 20, 20))
 
-            if player_score >= 5 or opponent_score >= 5:
+            if player1_score >= 5 or player2_score >= 5:
                 game_over = True
 
 
